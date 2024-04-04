@@ -29,7 +29,7 @@ class BTree:
         self.root = BTreeNode([], [], True)
         self.t = t
 
-    def b_tree_search(self, x, k):
+    def b_tree_search(self, k, x=None):
         """
         b_tree_search takes as input an object of root node x of a subtree
         and a key k to be searched for in that subtree.
@@ -37,17 +37,18 @@ class BTree:
         :param k: A key to be searched for
         :return: A tuple (node, index) where 'node' is the node containing the key 'k', and its index is 'i'. Returns None if 'k' is not found.
         """
-
-        i = 0
-        print(k)
-        while i < len(x.key_value_list) and k > x.key_value_list[i][0]:
-            i = i + 1
-        if i < len(x.key_value_list) and k == x.key_value_list[i][0]:
-            return x, i
-        elif x.is_leaf:
-            return None
+        if x is not None:
+            i = 0
+            while i < len(x.key_value_list) and k > x.key_value_list[i][0]:
+                i = i + 1
+            if i < len(x.key_value_list) and k == x.key_value_list[i][0]:
+                return (x, i)
+            elif x.is_leaf:
+                return None
+            else:
+                return self.b_tree_search(k, x.children[i])
         else:
-            return self.b_tree_search(x.children[i], k)
+            return self.b_tree_search(k, self.root)
 
 
     def b_tree_split_child(self, x, i):
@@ -67,13 +68,18 @@ class BTree:
         y = x.children[i]
         z = BTreeNode([], [], y.is_leaf)
         z.key_value_list.extend(y.key_value_list[self.t: 2 * self.t - 1])
+        for i in range(self.t, 2 * self.t - 1):
+            y.key_value_list.pop()
         if not y.is_leaf:
             z.children.extend(y.children[self.t: 2 * self.t])
-        x.children.insert(i + 1, z)
-        x.key_value_list.insert(i, y.key_value_list[self.t])
+            for i in range(self.t, 2 * self.t):
+                y.children.pop()
+        x.children.insert(i+1, z)
+        x.key_value_list.insert(i, y.key_value_list[self.t - 1])
+        y.key_value_list.pop()
 
 
-    def b_tree_insert(self, k):
+    def b_tree_insert(self, k, v):
         """
         Insert a key k and v pair(tuple) into the B-tree in a single pass down the tree.
         The b_tree_insert procedure uses b_tree_split_child to guarantee that the recursion never descends to a full node.
@@ -86,11 +92,11 @@ class BTree:
             self.root = s
             s.children.insert(0, r)
             self.b_tree_split_child(s, 0)
-            self.b_tree_insert_nonfull(s, k)
+            self.b_tree_insert_nonfull(s, k, v)
         else:
-            self.b_tree_insert_nonfull(r, k)
+            self.b_tree_insert_nonfull(r, k, v)
 
-    def b_tree_insert_nonfull(self, x, k):
+    def b_tree_insert_nonfull(self, x, k, v):
         """
         Insert key_value pair k(tuple) into the tree rooted at the nonfull root node.
         b_tree_insert_nonfull recurses as necessary down the tree, at all times guaranteeing
@@ -103,19 +109,19 @@ class BTree:
         i = len(x.key_value_list) - 1
         if x.is_leaf:
             x.key_value_list.append((None, None))
-            while i >= 0 and k[0] < x.key_value_list[i][0]:
+            while i >= 0 and k < x.key_value_list[i][0]:
                 x.key_value_list[i + 1] = x.key_value_list[i]
                 i = i - 1
-            x.key_value_list[i + 1] = k
+            x.key_value_list[i + 1] = (k, v)
         else:
-            while i >= 0 and k[0] < x.key_value_list[i][0]:
+            while i >= 0 and k < x.key_value_list[i][0]:
                 i = i - 1
-            # i = i + 1
+            i = i + 1
             if len(x.children[i].key_value_list) == 2 * self.t - 1:
                 self.b_tree_split_child(x, i)
-                if k[0] > x.key_value_list[i][0]:
+                if k > x.key_value_list[i][0]:
                     i = i + 1
-            self.b_tree_insert_nonfull(x.children[i], k)
+            self.b_tree_insert_nonfull(x.children[i], k, v)
 
     def print_tree(self, node, l=0):
         print("Level ", l, " ", end=":")
@@ -172,11 +178,10 @@ class UserInterface:
                         key_val = line.strip().split('\t')
                         key = int(key_val[0])
                         value = int(key_val[1])
-                        key_val_pair = (key, value)
-                        b_tree.b_tree_insert(key_val_pair)
+                        b_tree.b_tree_insert(key, value)
                         print(f"inserted ({key}, {value})")
-                        # b_tree.print_tree(b_tree.root)
-                        # input()
+                        b_tree.print_tree(b_tree.root)
+                        input()
 
                     file.seek(0)
                     modified_file_name = cls._get_new_file_name(file_path)
@@ -184,12 +189,16 @@ class UserInterface:
                         for line in file:
                             key_val = line.strip().split('\t')
                             key = int(key_val[0])
-                            result = b_tree.b_tree_search(b_tree.root, key)
+                            result = b_tree.b_tree_search(key, b_tree.root)
                             if result is not None:
                                 x, i = result
                                 file_to_write.write(f"{x.key_value_list[i][0]}\t{x.key_value_list[i][1]}\n")
+                                print(f"{x.key_value_list[i][0]}\t{x.key_value_list[i][1]}")
+                                input()
                             else:
                                 print(f"key: {key} not found.")
+                                # b_tree.print_tree(b_tree.root)
+                                input()
 
                 break
 
@@ -207,7 +216,7 @@ class UserInterface:
 
 def main():
     global b_tree
-    b_tree = BTree(3)  # t = 3, order = 6
+    b_tree = BTree(2)  # t = 2, order = 4
 
     UserInterface.main()
     b_tree.print_tree(b_tree.root)
