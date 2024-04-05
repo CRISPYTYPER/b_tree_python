@@ -233,7 +233,7 @@ class UserInterface:
 
 def main():
     global b_tree
-    b_tree = BTree(2)  # t = 2, order = 4
+    b_tree = BTree(3)  # t = 3, order = 6
 
     UserInterface.main()
     sys.exit(0)
