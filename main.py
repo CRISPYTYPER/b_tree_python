@@ -50,7 +50,7 @@ class BTree:
 
 
 
-    def b_tree_split_child(self, x, i):
+    def _b_tree_split_child(self, x, i):
         """
         The procedure splits the child(x.c[i]) in two and adjusts x so that it has an additional child.
         parent: x
@@ -80,9 +80,10 @@ class BTree:
 
     def b_tree_insert(self, k, v):
         """
-        Insert a key k and v pair(tuple) into the B-tree in a single pass down the tree.
-        The b_tree_insert procedure uses b_tree_split_child to guarantee that the recursion never descends to a full node.
-        :param k: A key, value pair to insert.
+        Insert a key k and value v into the B-tree in a single pass down the tree.
+        The b_tree_insert procedure uses _b_tree_split_child to guarantee that the recursion never descends to a full node.
+        :param k: A key to insert.
+        :param v: A value to insert.
         :return: None. This function performs its operation without returning a value.
         """
         r = self.root
@@ -90,19 +91,20 @@ class BTree:
             s = BTreeNode([], [], False)
             self.root = s
             s.children.insert(0, r)
-            self.b_tree_split_child(s, 0)
-            self.b_tree_insert_nonfull(s, k, v)
+            self._b_tree_split_child(s, 0)
+            self._b_tree_insert_nonfull(s, k, v)
         else:
-            self.b_tree_insert_nonfull(r, k, v)
+            self._b_tree_insert_nonfull(r, k, v)
 
-    def b_tree_insert_nonfull(self, x, k, v):
+    def _b_tree_insert_nonfull(self, x, k, v):
         """
-        Insert key_value pair k(tuple) into the tree rooted at the nonfull root node.
-        b_tree_insert_nonfull recurses as necessary down the tree, at all times guaranteeing
-        that the node to which it recurses is not full by calling b_tree_split_child as necessary.
+        Insert key k and value v into the tree rooted at the nonfull root node.
+        _b_tree_insert_nonfull recurses as necessary down the tree, at all times guaranteeing
+        that the node to which it recurses is not full by calling _b_tree_split_child as necessary.
 
         :param x: A node to insert.
-        :param k: A key, value pair to insert into node x.
+        :param k: A key to insert into node x.
+        :param v: A value to insert into node x.
         :return: None. This function performs its operation without returning a value.
         """
         i = len(x.key_value_list) - 1
@@ -117,11 +119,11 @@ class BTree:
                 i = i - 1
             i = i + 1
             if len(x.children[i].key_value_list) == 2 * self.t - 1:
-                self.b_tree_split_child(x, i)
+                self._b_tree_split_child(x, i)
                 if k > x.key_value_list[i][0]:
                     i = i + 1
 
-            self.b_tree_insert_nonfull(x.children[i], k, v)
+            self._b_tree_insert_nonfull(x.children[i], k, v)
 
     def print_tree(self, node, l=0):
         print("Level ", l, " ", end=":")
