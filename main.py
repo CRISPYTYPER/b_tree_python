@@ -68,11 +68,11 @@ class BTree:
         y = x.children[i]
         z = BTreeNode([], [], y.is_leaf)
         z.key_value_list.extend(y.key_value_list[self.t: 2 * self.t - 1])
-        for i in range(self.t, 2 * self.t - 1):
+        for j in range(self.t, 2 * self.t - 1):
             y.key_value_list.pop()
         if not y.is_leaf:
             z.children.extend(y.children[self.t: 2 * self.t])
-            for i in range(self.t, 2 * self.t):
+            for j in range(self.t, 2 * self.t):
                 y.children.pop()
         x.children.insert(i+1, z)
         x.key_value_list.insert(i, y.key_value_list[self.t - 1])
@@ -121,6 +121,7 @@ class BTree:
                 self.b_tree_split_child(x, i)
                 if k > x.key_value_list[i][0]:
                     i = i + 1
+
             self.b_tree_insert_nonfull(x.children[i], k, v)
 
     def print_tree(self, node, l=0):
@@ -149,7 +150,7 @@ class UserInterface:
                 # TODO: deletion()
                 pass
             elif input_num == 3:
-                sys.exit(0)
+                break
             else:
                 print("Invalid input!")
 
@@ -166,6 +167,17 @@ class UserInterface:
         return modified_name
 
     @classmethod
+    def _compare_two_files(cls, file1_path, file2_path):
+        with open(file1_path, 'r') as file1, open(file2_path, 'r') as file2:
+            for line1, line2 in zip(file1, file2):
+                if line1 != line2:
+                    return False
+            return next(file1, None) is None and next(file2, None) is None
+
+
+
+
+    @classmethod
     def _insertion(cls):
         while True:
             file_path = input("Please enter the file path, or type 'exit' to quit: \n")
@@ -180,8 +192,8 @@ class UserInterface:
                         value = int(key_val[1])
                         b_tree.b_tree_insert(key, value)
                         print(f"inserted ({key}, {value})")
-                        b_tree.print_tree(b_tree.root)
-                        input()
+                        # b_tree.print_tree(b_tree.root)
+                        # input()
 
                     file.seek(0)
                     modified_file_name = cls._get_new_file_name(file_path)
@@ -194,12 +206,17 @@ class UserInterface:
                                 x, i = result
                                 file_to_write.write(f"{x.key_value_list[i][0]}\t{x.key_value_list[i][1]}\n")
                                 print(f"{x.key_value_list[i][0]}\t{x.key_value_list[i][1]}")
-                                input()
+                                # input()
                             else:
                                 print(f"key: {key} not found.")
                                 # b_tree.print_tree(b_tree.root)
-                                input()
-
+                                # input()
+                print()
+                if cls._compare_two_files(file_path, modified_file_name):
+                    print("Created file is the same as the original file!\n")
+                else:
+                    print("Created file is different from the original file!\n")
+                print()
                 break
 
             except FileNotFoundError:
@@ -219,7 +236,7 @@ def main():
     b_tree = BTree(2)  # t = 2, order = 4
 
     UserInterface.main()
-    b_tree.print_tree(b_tree.root)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
