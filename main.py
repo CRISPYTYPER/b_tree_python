@@ -29,7 +29,7 @@ class BTree:
         self.root = BTreeNode([], [], True)
         self.t = t
 
-    def b_tree_search(self, k, x=None):
+    def b_tree_search(self, x, k):
         """
         b_tree_search takes as input an object of root node x of a subtree
         and a key k to be searched for in that subtree.
@@ -37,18 +37,17 @@ class BTree:
         :param k: A key to be searched for
         :return: A tuple (node, index) where 'node' is the node containing the key 'k', and its index is 'i'. Returns None if 'k' is not found.
         """
-        if x is not None:
-            i = 0
-            while i < len(x.key_value_list) and k > x.key_value_list[i][0]:
-                i = i + 1
-            if i < len(x.key_value_list) and k == x.key_value_list[i][0]:
-                return (x, i)
-            elif x.is_leaf:
-                return None
-            else:
-                return self.b_tree_search(k, x.children[i])
+
+        i = 0
+        while i < len(x.key_value_list) and k > x.key_value_list[i][0]:
+            i = i + 1
+        if i < len(x.key_value_list) and k == x.key_value_list[i][0]:
+            return (x, i)
+        elif x.is_leaf:
+            return None
         else:
-            return self.b_tree_search(k, self.root)
+            return self.b_tree_search(x.children[i], k)
+
 
 
     def b_tree_split_child(self, x, i):
@@ -201,12 +200,11 @@ class UserInterface:
                         for line in file:
                             key_val = line.strip().split('\t')
                             key = int(key_val[0])
-                            result = b_tree.b_tree_search(key, b_tree.root)
+                            result = b_tree.b_tree_search(b_tree.root, key)
                             if result is not None:
                                 x, i = result
                                 file_to_write.write(f"{x.key_value_list[i][0]}\t{x.key_value_list[i][1]}\n")
-                                print(f"{x.key_value_list[i][0]}\t{x.key_value_list[i][1]}")
-                                # input()
+                                print(f"(key: {x.key_value_list[i][0]}, value: {x.key_value_list[i][1]}) found!")                                # input()
                             else:
                                 print(f"key: {key} not found.")
                                 # b_tree.print_tree(b_tree.root)
