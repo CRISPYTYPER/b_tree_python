@@ -125,6 +125,73 @@ class BTree:
 
             self._b_tree_insert_nonfull(x.children[i], k, v)
 
+    def _pred(self, k, v, x):
+        """
+        Find the data having the biggest key in the subtree where root is x. (Moving to the left child is already implemented)
+        Then, swap it with k and v.
+        Then, return the previous key and its value.
+        :param k: key to swap(key to delete).
+        :param v: value to swap(value to delete).
+        :param x: root node of the subtree.
+        :return: (prev_key, prev_value) tuple.
+        """
+        if x.is_leaf:
+            k_prev = x.key_value_list[len(x.key_value_list) - 1][0]
+            v_prev = x.key_value_list[len(x.key_value_list) - 1][1]
+            x.key_value_list[len(x.key_value_list) - 1][0] = k
+            v.key_value_list[len(x.key_value_list) - 1][1] = v
+            return k_prev, v_prev
+
+        self._pred(k, v, x.children[len(x.children) - 1])
+
+    def _succ(self, k, v, x):
+        """
+        Find the data having the smallest key in the subtree where root is x. (Moving to the right child is already implemented)
+        Then, swap it with k and v.
+        Then, return the previous key and its value.
+        :param k: key to swap(key to delete).
+        :param v: value to swap(value to delete).
+        :param x: root node of the subtree.
+        :return: (prev_key, prev_value) tuple.
+        """
+        if x.is_leaf:
+            k_prev = x.key_value_list[0][0]
+            v_prev = x.key_value_list[0][1]
+            x.key_value_list[0][0] = k
+            v.key_value_list[0][1] = v
+            return k_prev, v_prev
+
+        self._succ(k, v, x.children[0])
+
+
+    def b_tree_delete(self, x, k):
+        """
+        Delete a key k and the corresponding value v from the B-tree.
+
+        :param k: A key to delete.
+        :param x: A node to delete from.
+        :return: None. This function performs its operation without returning a value.
+        """
+        if x.is_leaf:
+            for i in range(0, len(x.key_value_list)):
+                if x.key_value_list[i][0] == k:
+                    x.key_value_list.pop(i)
+                    return
+            # end for
+        # end if
+
+        # if not x.is_leaf
+        i = 0
+        while x.key_value_list[i][0] < k:
+            i = i + 1
+        # end while
+        if x.key_value_list[i][0] == k:  # if k is in node x at position i
+            if len(x.children[i]) >= self.t:
+
+
+
+
+
     def print_tree(self, node, l=0):
         print("Level ", l, " ", end=":")
         for i in node.key_value_list:
