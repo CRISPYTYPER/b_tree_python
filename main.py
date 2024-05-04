@@ -203,10 +203,10 @@ class BTree:
             me.children.append(right_sibling.children.pop(0))
     def _fix_shortage(self, x, i):
         """
-        reshape if the number of data is below t-1 after deleting
-        :param x:
-        :param i:
-        :return: corresponding i value
+        Reshape (fix shortage) if the number of data is below t-1 after deleting
+        :param x: parent node
+        :param i: index of the child node to fix
+        :return: changed i value
         """
         if i < len(x.key_value_list) and len(x.children[i+1].key_value_list) >= self.t:
             self._borrow_from_right(x, i)
