@@ -191,10 +191,10 @@ class BTree:
         if not me.is_leaf:
             me.children.append(right_sibling.children.pop(0))
     def _fix_shortage(self, x, i):
-        if i > 0 and len(x.children[i-1].key_value_list) >= self.t:
-            self._borrow_from_left(x, i)
-        elif i < len(x.key_value_list) and len(x.children[i+1].key_value_list) >= self.t:
+        if i < len(x.key_value_list) and len(x.children[i+1].key_value_list) >= self.t:
             self._borrow_from_right(x, i)
+        elif i > 0 and len(x.children[i-1].key_value_list) >= self.t:
+            self._borrow_from_left(x, i)
         else:
             if i == len(x.key_value_list):  # if the child to deal with is the right-most one
                 self._merge(x, i-1)
@@ -208,20 +208,17 @@ class BTree:
         :param k: A key to delete.
         :return: None. This function performs its operation without returning a value.
         """
-        r = self.root
-        if r is None:
+        if self.root is None:
             return None
-        self._b_tree_delete(r, k)
-        if len(r.key_value_list) == 0:
-            if not r.is_leaf:
+        self._b_tree_delete(self.root, k)
+        if len(self.root.key_value_list) == 0:
+            if not self.root.is_leaf:
                 """
                 Consider a B-tree where the root node has a single key and two children. 
                 If the only key in the root is deleted, and it was the median that allowed for merging its two children into one, 
                 the root would be left with no keys
                 """
-                r = r.children[0]
-            else:
-                r = None
+                self.root = self.root.children[0]
         return
 
     def _b_tree_delete(self, x, k):
@@ -305,7 +302,7 @@ class UserInterface:
     def _compare_two_files(cls, file1_path, file2_path):
         with open(file1_path, 'r') as file1, open(file2_path, 'r') as file2:
             for line1, line2 in zip(file1, file2):
-                if line1 != line2:
+                if line1.strip() != line2.strip():
                     return False
             return next(file1, None) is None and next(file2, None) is None
 
@@ -369,6 +366,7 @@ class UserInterface:
     def _deletion(cls):
         while True:
             delete_file_path = input("Please enter the file path for deletion, or type 'exit' to quit: \n")
+            delete_compare_file_path = input("Please enter the file path for comparison, or type 'exit' to quit: \n")
             if delete_file_path.lower() == "exit":
                 print("Exiting the program.")
                 sys.exit(0)
@@ -395,12 +393,12 @@ class UserInterface:
                                 print(
                                     f"(key: {x.key_value_list[i][0]}, value: {x.key_value_list[i][1]}) found!")  # input()
                             else:
-                                file_to_write.write(f"{key}\tN/A")
+                                file_to_write.write(f"{key}\tN/A\n")
                                 print(f"key: {key} not found.")
                                 # b_tree.print_tree(b_tree.root)
                                 # input()
                 print()
-                if cls._compare_two_files(delete_file_path, modified_file_name):
+                if cls._compare_two_files(delete_compare_file_path, modified_file_name):
                     print("Created file is the same as the original file!\n")
                 else:
                     print("Created file is different from the original file!\n")
