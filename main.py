@@ -154,15 +154,26 @@ class BTree:
         :param i: Index of the node to merge.
         :return: None. This function performs its operation without returning a value.
         """
-        left_children = x.children[i]
-        right_children = x.children[i + 1]
-        mid_node = x.key_value_list.pop(i)
-        left_children.key_value_list.append(mid_node)
-        left_children.key_value_list.extend(right_children.key_value_list)
-        if not left_children.is_leaf:
-            left_children.children.extend(right_children.children)
+        if len(x.children) == 2 and x == self.root:
+            left_children = x.children[0]
+            right_children = x.children[1]
+            root_node = x.key_value_list[0]
 
-        x.children.pop(i+1)  # remove the right children from the parent x
+            left_children.key_value_list.append(root_node)
+            left_children.key_value_list.extend(right_children.key_value_list)
+            if not left_children.is_leaf:
+                left_children.children.extend(right_children.children)
+            self.root = left_children
+        else:
+            left_children = x.children[i]
+            right_children = x.children[i + 1]
+            mid_node = x.key_value_list.pop(i)
+            left_children.key_value_list.append(mid_node)
+            left_children.key_value_list.extend(right_children.key_value_list)
+            if not left_children.is_leaf:
+                left_children.children.extend(right_children.children)
+
+            x.children.pop(i+1)  # remove the right children from the parent x
     def _borrow_from_left(self, parent, i):
         """
         Borrow from the left sibling (not from the parent's perspective)
@@ -191,6 +202,12 @@ class BTree:
         if not me.is_leaf:
             me.children.append(right_sibling.children.pop(0))
     def _fix_shortage(self, x, i):
+        """
+        reshape if the number of data is below t-1 after deleting
+        :param x:
+        :param i:
+        :return: corresponding i value
+        """
         if i < len(x.key_value_list) and len(x.children[i+1].key_value_list) >= self.t:
             self._borrow_from_right(x, i)
         elif i > 0 and len(x.children[i-1].key_value_list) >= self.t:
@@ -198,8 +215,10 @@ class BTree:
         else:
             if i == len(x.key_value_list):  # if the child to deal with is the right-most one
                 self._merge(x, i-1)
+                return i-1
             else:
                 self._merge(x, i)
+        return i
 
     def b_tree_delete(self, k):
         """
@@ -254,7 +273,7 @@ class BTree:
             if x.is_leaf:  # if not found until leaf
                 return
             if len(x.children[i].key_value_list) < self.t:
-                self._fix_shortage(x, i)
+                i = self._fix_shortage(x, i)
             self._b_tree_delete(x.children[i], k)
 
     def print_tree(self, node, l=0):
