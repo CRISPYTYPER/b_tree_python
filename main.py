@@ -256,7 +256,6 @@ class BTree:
             if x.is_leaf:
                 x.key_value_list.pop(i)
             else:  # if x is not a leaf
-                v = x.key_value_list[i][1]
                 if len(x.children[i].key_value_list) >= self.t:
                     node_pred = self._pred(x.children[i])
                     x.key_value_list[i] = node_pred
